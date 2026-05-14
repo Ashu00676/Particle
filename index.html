@@ -3,77 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Motion Visualizer | Face & Hand Controlled Particles</title>
+    <title>Hand Magic | Gesture Controlled Particle Shapes</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             overflow: hidden;
-            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
             background: #000;
             touch-action: none;
         }
 
-        /* Floating UI */
-        .ui-panel {
+        /* Neon UI Panel */
+        .main-panel {
             position: fixed;
             bottom: 20px;
             left: 20px;
             z-index: 100;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(16px);
-            border-radius: 20px;
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
             padding: 12px 18px;
-            border-left: 3px solid #ff3366;
+            border-left: 4px solid #ff00cc;
+            box-shadow: 0 0 25px rgba(255, 0, 204, 0.3);
             pointer-events: none;
-            font-size: 12px;
-            color: white;
         }
 
-        .ui-panel h1 {
-            font-size: 16px;
-            background: linear-gradient(135deg, #ff3366, #ff66cc, #33ccff);
+        .main-panel h1 {
+            font-size: 18px;
+            background: linear-gradient(135deg, #ff00cc, #ff44aa, #00ccff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
         }
 
-        .shape-badge {
+        .main-panel p {
+            font-size: 10px;
+            opacity: 0.7;
+            color: white;
+        }
+
+        .shape-indicator {
             position: fixed;
             top: 20px;
             left: 20px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(12px);
-            padding: 10px 20px;
-            border-radius: 40px;
+            padding: 12px 24px;
+            border-radius: 50px;
             font-weight: bold;
-            font-size: 14px;
-            color: #ff66cc;
+            font-size: 18px;
             font-family: monospace;
+            color: #ff44ee;
             z-index: 100;
-            border: 1px solid #ff66cc66;
+            border: 1px solid #ff44ee;
+            box-shadow: 0 0 20px rgba(255, 68, 238, 0.3);
             pointer-events: none;
+            letter-spacing: 1px;
         }
 
-        .status-card {
+        .shape-indicator span {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        .status-bar {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
             padding: 8px 16px;
-            border-radius: 30px;
+            border-radius: 40px;
             font-size: 11px;
             font-family: monospace;
             color: #0f0;
             z-index: 100;
-            border: 1px solid #00ffaa66;
+            border: 1px solid #00ffaa;
             pointer-events: none;
         }
 
@@ -82,65 +97,86 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(12px);
-            padding: 8px 18px;
+            padding: 8px 20px;
             border-radius: 40px;
-            font-size: 11px;
+            font-size: 12px;
             color: white;
             white-space: nowrap;
             z-index: 100;
             font-family: monospace;
             pointer-events: none;
-            text-align: center;
+            border: 1px solid #ff44aa;
+        }
+
+        .gesture-hint {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 10px;
+            color: #ffaa88;
+            font-family: monospace;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 100;
         }
 
         @media (max-width: 700px) {
-            .ui-panel { padding: 8px 12px; bottom: 12px; left: 12px; }
-            .shape-badge { font-size: 11px; top: 12px; left: 12px; padding: 6px 14px; }
-            .status-card { font-size: 9px; top: 12px; right: 12px; }
+            .shape-indicator { font-size: 14px; padding: 8px 16px; top: 12px; left: 12px; }
+            .shape-indicator span { font-size: 18px; }
             .instruction { font-size: 9px; bottom: 12px; white-space: nowrap; }
+            .gesture-hint { font-size: 8px; bottom: 60px; }
+            .main-panel { padding: 8px 14px; bottom: 12px; left: 12px; }
+            .main-panel h1 { font-size: 14px; }
         }
 
         canvas {
             display: block;
-            width: 100%;
-            height: 100%;
         }
-
-        .video-feed {
+        
+        .video-mirror {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 120px;
-            height: 90px;
+            width: 100px;
+            height: 75px;
             border-radius: 16px;
-            border: 2px solid #ff3366;
-            z-index: 200;
-            opacity: 0.85;
+            border: 2px solid #ff44ee;
             object-fit: cover;
-            box-shadow: 0 0 15px rgba(255,51,102,0.5);
+            opacity: 0.85;
+            z-index: 200;
+            box-shadow: 0 0 12px rgba(255,68,238,0.5);
             pointer-events: none;
-        }
-
-        @media (max-width: 600px) {
-            .video-feed { width: 80px; height: 60px; bottom: 12px; right: 12px; }
         }
     </style>
 </head>
 <body>
-    <div class="ui-panel">
-        <h1>🌀 MOTION SHAPES</h1>
-        <div>move your head or hand → particles change shape</div>
+    <div class="main-panel">
+        <h1>✋ HAND SHAPES | PARTICLE MORPH</h1>
+        <p>move your hand → particles create infinite shapes</p>
     </div>
-    <div class="shape-badge" id="shapeLabel">⚪ CURRENT: CIRCLE</div>
-    <div class="status-card" id="status">📷 loading camera...</div>
-    <div class="instruction" id="instructionText">🧘 MOVE SLOWLY | SHAPE CHANGES: CIRCLE ▢ TRIANGLE ∞ WAVE</div>
+    <div class="shape-indicator" id="shapeName">
+        <span>🌀</span> CIRCLE
+    </div>
+    <div class="status-bar" id="statusText">
+        📷 starting camera...
+    </div>
+    <div class="instruction">
+        ✨ SHOW YOUR HAND | MOVE LEFT/RIGHT/UP/DOWN → SHAPES CHANGE
+    </div>
+    <div class="gesture-hint" id="gestureHint">
+        🖐️ OPEN PALM = SMOOTH | ✊ FIST = EXPLOSIVE
+    </div>
 
-    <!-- Video element for face tracking -->
-    <video id="webcamVideo" class="video-feed" autoplay playsinline muted></video>
+    <video id="webcamFeed" class="video-mirror" autoplay playsinline muted></video>
 
-    <!-- Import Three.js and ML libraries -->
+    <!-- Import Three.js and MediaPipe -->
     <script type="importmap">
         {
             "imports": {
@@ -156,343 +192,460 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         
-        // --- setup scene ---
+        // --- setup scene (cinematic dark) ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x010118);
-        scene.fog = new THREE.FogExp2(0x010118, 0.0005);
+        scene.background = new THREE.Color(0x020218);
+        scene.fog = new THREE.FogExp2(0x020218, 0.0004);
         
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 14);
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 13);
         camera.lookAt(0, 0, 0);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
         
-        // bloom for neon look
+        // bloom for neon glow
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.3, 0.7);
-        bloomPass.threshold = 0.1;
-        bloomPass.strength = 1.0;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.3, 0.4, 0.8);
+        bloomPass.threshold = 0.05;
+        bloomPass.strength = 1.2;
         const effectComposer = new EffectComposer(renderer);
         effectComposer.addPass(renderScene);
         effectComposer.addPass(bloomPass);
         
-        // background stars
-        const starGeo = new THREE.BufferGeometry();
-        const starCount = 800;
-        const starPos = new Float32Array(starCount * 3);
-        for (let i = 0; i < starCount; i++) {
-            starPos[i*3] = (Math.random() - 0.5) * 200;
-            starPos[i*3+1] = (Math.random() - 0.5) * 120;
-            starPos[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        // Starfield background
+        const starFieldGeo = new THREE.BufferGeometry();
+        const starCountBg = 1200;
+        const starPosBg = new Float32Array(starCountBg * 3);
+        for (let i = 0; i < starCountBg; i++) {
+            starPosBg[i*3] = (Math.random() - 0.5) * 200;
+            starPosBg[i*3+1] = (Math.random() - 0.5) * 120;
+            starPosBg[i*3+2] = (Math.random() - 0.5) * 70 - 30;
         }
-        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x88aaff, size: 0.1, transparent: true, opacity: 0.4 }));
-        scene.add(stars);
+        starFieldGeo.setAttribute('position', new THREE.BufferAttribute(starPosBg, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0xaaccff, size: 0.08, transparent: true, opacity: 0.5 });
+        const starsBg = new THREE.Points(starFieldGeo, starMaterial);
+        scene.add(starsBg);
         
-        // --- PARTICLE SYSTEM (10k particles for rich effect) ---
-        const PARTICLE_COUNT = 10000;
-        const particleGeo = new THREE.BufferGeometry();
-        const positions = new Float32Array(PARTICLE_COUNT * 3);
-        // store base target positions for shape morphing
-        let targetPositions = new Float32Array(PARTICLE_COUNT * 3);
-        let currentPositions = new Float32Array(PARTICLE_COUNT * 3);
+        // --- MAIN PARTICLE SYSTEM (12000 particles) ---
+        const PARTICLE_COUNT = 12000;
+        const particleGeometry = new THREE.BufferGeometry();
+        const initialPositions = new Float32Array(PARTICLE_COUNT * 3);
         
-        // random starting positions inside sphere
+        // random initial positions
         for (let i = 0; i < PARTICLE_COUNT; i++) {
-            const r = Math.pow(Math.random(), 1.2) * 5.5;
+            const radius = Math.pow(Math.random(), 1.3) * 5.8;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
-            const x = r * Math.sin(phi) * Math.cos(theta);
-            const y = r * Math.sin(phi) * Math.sin(theta);
-            const z = r * Math.cos(phi);
-            positions[i*3] = x;
-            positions[i*3+1] = y;
-            positions[i*3+2] = z;
-            currentPositions[i*3] = x;
-            currentPositions[i*3+1] = y;
-            currentPositions[i*3+2] = z;
+            initialPositions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+            initialPositions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+            initialPositions[i*3+2] = radius * Math.cos(phi);
         }
-        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(initialPositions, 3));
         
-        // vibrant colors
-        const colorsArr = new Float32Array(PARTICLE_COUNT * 3);
+        // vibrant colors (rainbow / neon)
+        const particleColors = new Float32Array(PARTICLE_COUNT * 3);
         for (let i = 0; i < PARTICLE_COUNT; i++) {
-            colorsArr[i*3] = 0.7 + Math.random() * 0.3;
-            colorsArr[i*3+1] = 0.3 + Math.random() * 0.5;
-            colorsArr[i*3+2] = 0.8 + Math.random() * 0.2;
+            const hue = (i / PARTICLE_COUNT) * 360;
+            // neon purple, pink, cyan mix
+            if (i % 3 === 0) {
+                particleColors[i*3] = 0.9 + Math.random()*0.3;
+                particleColors[i*3+1] = 0.2 + Math.random()*0.4;
+                particleColors[i*3+2] = 0.8 + Math.random()*0.2;
+            } else if (i % 3 === 1) {
+                particleColors[i*3] = 0.2 + Math.random()*0.3;
+                particleColors[i*3+1] = 0.6 + Math.random()*0.4;
+                particleColors[i*3+2] = 1.0;
+            } else {
+                particleColors[i*3] = 1.0;
+                particleColors[i*3+1] = 0.3 + Math.random()*0.5;
+                particleColors[i*3+2] = 0.6 + Math.random()*0.4;
+            }
         }
-        particleGeo.setAttribute('color', new THREE.BufferAttribute(colorsArr, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
         
-        const particleMat = new THREE.PointsMaterial({ size: 0.09, vertexColors: true, blending: THREE.AdditiveBlending });
-        const particleSystem = new THREE.Points(particleGeo, particleMat);
+        const particleMaterial = new THREE.PointsMaterial({ size: 0.1, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true });
+        const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
         scene.add(particleSystem);
         
-        // Helper: generate shape positions (circle, square, triangle, wave/spiral)
-        function generateShape(shapeType, timeOffset = 0) {
-            const newTarget = new Float32Array(PARTICLE_COUNT * 3);
-            const radiusBase = 4.2;
+        // aura sphere
+        const auraMat = new THREE.MeshBasicMaterial({ color: 0xff44cc, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending });
+        const auraGlow = new THREE.Mesh(new THREE.SphereGeometry(1.3, 24, 24), auraMat);
+        scene.add(auraGlow);
+        
+        // --- MANY SHAPES (12+ unique shapes) ---
+        const SHAPES = [
+            'circle', 'square', 'triangle', 'heart', 'star', 'infinity', 
+            'spiral', 'wave', 'flower', 'hexagon', 'diamond', 'butterfly'
+        ];
+        let currentShapeIndex = 0;
+        let currentShapeName = 'circle';
+        let targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+        
+        // Shape generation functions (beautiful mathematical patterns)
+        function generateShapePositions(shapeType, timeOffset = 0) {
+            const positions = new Float32Array(PARTICLE_COUNT * 3);
+            const scale = 4.2;
             
             for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const t = i / PARTICLE_COUNT; // 0..1
-                let x, y, z;
+                const t = i / PARTICLE_COUNT; // parametric 0..1
                 const angle = t * Math.PI * 2;
+                let x, y, z;
                 
                 switch(shapeType) {
                     case 'circle':
-                        // circular ring with thickness
-                        const r = radiusBase;
-                        x = Math.cos(angle) * r;
-                        y = Math.sin(angle) * r;
-                        z = (Math.sin(angle * 3) * 0.6) + (Math.cos(angle * 2) * 0.4);
+                        x = Math.cos(angle) * scale;
+                        y = Math.sin(angle) * scale;
+                        z = Math.sin(angle * 3) * 0.5;
                         break;
                     case 'square':
-                        // square / rectangle shape
                         const side = 3.8;
                         const edge = Math.floor(t * 4);
                         const p = (t * 4) - edge;
-                        if (edge === 0) { x = -side + p * 2*side; y = -side; z = Math.sin(p * Math.PI) * 0.8; }
-                        else if (edge === 1) { x = side; y = -side + p * 2*side; z = Math.cos(p * Math.PI) * 0.8; }
-                        else if (edge === 2) { x = side - p * 2*side; y = side; z = Math.sin(p * Math.PI) * 0.8; }
-                        else { x = -side; y = side - p * 2*side; z = Math.cos(p * Math.PI) * 0.8; }
+                        if (edge === 0) { x = -side + p * 2*side; y = -side; z = Math.sin(p * Math.PI) * 0.6; }
+                        else if (edge === 1) { x = side; y = -side + p * 2*side; z = Math.cos(p * Math.PI) * 0.6; }
+                        else if (edge === 2) { x = side - p * 2*side; y = side; z = Math.sin(p * Math.PI) * 0.6; }
+                        else { x = -side; y = side - p * 2*side; z = Math.cos(p * Math.PI) * 0.6; }
                         break;
                     case 'triangle':
-                        // triangular orbit
-                        const ang = angle;
-                        const rTri = 4.0;
                         const corners = 3;
-                        const cornerIdx = Math.floor((ang / (Math.PI*2)) * corners);
+                        const cornerIdx = Math.floor((angle / (Math.PI*2)) * corners);
                         const cornerAng = (cornerIdx * Math.PI*2 / corners);
                         const nextAng = ((cornerIdx+1) % corners) * Math.PI*2 / corners;
-                        const frac = (ang - cornerAng) / (Math.PI*2 / corners);
-                        const ax = Math.cos(cornerAng) * rTri;
-                        const ay = Math.sin(cornerAng) * rTri;
-                        const bx = Math.cos(nextAng) * rTri;
-                        const by = Math.sin(nextAng) * rTri;
+                        const frac = (angle - cornerAng) / (Math.PI*2 / corners);
+                        const ax = Math.cos(cornerAng) * scale;
+                        const ay = Math.sin(cornerAng) * scale;
+                        const bx = Math.cos(nextAng) * scale;
+                        const by = Math.sin(nextAng) * scale;
                         x = ax * (1-frac) + bx * frac;
                         y = ay * (1-frac) + by * frac;
-                        z = Math.sin(ang * 4) * 0.7;
+                        z = Math.sin(angle * 4) * 0.7;
+                        break;
+                    case 'heart':
+                        const heartX = 16 * Math.pow(Math.sin(angle), 3);
+                        const heartY = 13 * Math.cos(angle) - 5 * Math.cos(2*angle) - 2*Math.cos(3*angle) - Math.cos(4*angle);
+                        x = heartX * 0.22;
+                        y = heartY * 0.22;
+                        z = Math.sin(angle * 2) * 0.4;
+                        break;
+                    case 'star':
+                        const spikes = 5;
+                        const outerR = scale;
+                        const innerR = scale * 0.45;
+                        const radAngle = angle;
+                        const rStar = (Math.floor(radAngle * spikes / (Math.PI*2)) % 2 === 0) ? outerR : innerR;
+                        x = Math.cos(radAngle) * rStar;
+                        y = Math.sin(radAngle) * rStar;
+                        z = Math.sin(radAngle * 5) * 0.5;
+                        break;
+                    case 'infinity':
+                        const infScale = 3.8;
+                        x = Math.sin(angle) * infScale;
+                        y = Math.sin(2 * angle) * infScale * 0.6;
+                        z = Math.cos(angle * 1.5) * 0.8;
+                        break;
+                    case 'spiral':
+                        const spiralR = t * 5.2;
+                        const spiralAngle = t * Math.PI * 8;
+                        x = Math.cos(spiralAngle) * spiralR;
+                        y = Math.sin(spiralAngle) * spiralR;
+                        z = Math.sin(spiralAngle * 2) * 0.9;
                         break;
                     case 'wave':
-                        // spiral wave
-                        const spiralT = t;
-                        const rad = 2.5 + spiralT * 3.0;
-                        const angSpiral = spiralT * Math.PI * 6;
-                        x = Math.cos(angSpiral) * rad;
-                        y = Math.sin(angSpiral) * rad;
-                        z = Math.sin(angSpiral * 2) * 1.2;
+                        const waveX = (t - 0.5) * 8;
+                        const waveY = Math.sin(t * Math.PI * 6) * 3.2;
+                        x = waveX;
+                        y = waveY;
+                        z = Math.cos(t * Math.PI * 4) * 1.2;
+                        break;
+                    case 'flower':
+                        const petals = 6;
+                        const rFlower = scale * (0.7 + 0.3 * Math.sin(petals * angle));
+                        x = Math.cos(angle) * rFlower;
+                        y = Math.sin(angle) * rFlower;
+                        z = Math.sin(angle * petals) * 0.7;
+                        break;
+                    case 'hexagon':
+                        const hexR = scale;
+                        const angleHex = angle;
+                        const segment = Math.floor(angleHex / (Math.PI*2/6));
+                        const segAng = segment * Math.PI*2/6;
+                        const nextSegAng = ((segment+1)%6) * Math.PI*2/6;
+                        const tHex = (angleHex - segAng) / (Math.PI*2/6);
+                        const p1x = Math.cos(segAng) * hexR;
+                        const p1y = Math.sin(segAng) * hexR;
+                        const p2x = Math.cos(nextSegAng) * hexR;
+                        const p2y = Math.sin(nextSegAng) * hexR;
+                        x = p1x * (1-tHex) + p2x * tHex;
+                        y = p1y * (1-tHex) + p2y * tHex;
+                        z = Math.sin(angleHex * 3) * 0.5;
+                        break;
+                    case 'diamond':
+                        const diaSize = 4.2;
+                        const absX = Math.abs(t - 0.5) * 2;
+                        x = (t - 0.5) * diaSize * 1.8;
+                        y = (absX * 2 - 1) * diaSize;
+                        z = Math.sin(t * Math.PI * 4) * 0.6;
+                        break;
+                    case 'butterfly':
+                        const wingX = Math.sin(angle) * (Math.exp(Math.cos(angle)) - 2 * Math.cos(4*angle) + Math.pow(Math.sin(angle/12), 5));
+                        const wingY = Math.cos(angle) * (Math.exp(Math.cos(angle)) - 2 * Math.cos(4*angle));
+                        x = wingX * 1.2;
+                        y = wingY * 1.2;
+                        z = Math.sin(angle * 3) * 0.7;
                         break;
                     default:
-                        x = Math.cos(angle) * 4;
-                        y = Math.sin(angle) * 4;
+                        x = Math.cos(angle) * scale;
+                        y = Math.sin(angle) * scale;
                         z = 0;
                 }
-                newTarget[i*3] = x;
-                newTarget[i*3+1] = y;
-                newTarget[i*3+2] = z;
+                positions[i*3] = x;
+                positions[i*3+1] = y;
+                positions[i*3+2] = z;
             }
-            return newTarget;
+            return positions;
         }
         
-        // Initialize target shapes
-        let currentShape = 'circle';
-        let targetShapeBuffer = generateShape('circle');
-        let morphFactor = 0.02; // smoothness
+        // initialize target shape
+        targetPositions = generateShapePositions('circle');
         
-        // --- Face & Motion Tracking using FaceMesh + simple motion delta ---
-        const videoEl = document.getElementById('webcamVideo');
-        let faceDetected = false;
-        let facePosition = { x: 0.5, y: 0.5 }; // normalized
-        let prevFaceX = 0.5, prevFaceY = 0.5;
-        let motionMagnitude = 0;
-        let shapeCycle = 0;
+        // --- HAND TRACKING with MediaPipe (Full hand detection) ---
+        const videoElement = document.getElementById('webcamFeed');
+        let handLandmarks = null;
+        let handDetected = false;
+        let handPalmPos = { x: 0.5, y: 0.5 };
+        let handGesture = "open"; // open or fist
+        let lastHandX = 0.5, lastHandY = 0.5;
+        let handVelocity = 0;
         
-        // Load MediaPipe FaceMesh (lightweight for motion)
-        async function initFaceTracking() {
+        // function to detect gesture (fist vs open)
+        function getHandGesture(landmarks) {
+            if (!landmarks) return "open";
+            const tips = [4, 8, 12, 16, 20];
+            const bases = [3, 6, 10, 14, 18];
+            let totalDist = 0;
+            for (let i = 0; i < tips.length; i++) {
+                const tip = landmarks[tips[i]];
+                const base = landmarks[bases[i]];
+                totalDist += Math.hypot(tip.x - base.x, tip.y - base.y, tip.z - base.z);
+            }
+            return totalDist > 0.85 ? "open" : "fist";
+        }
+        
+        // initialize MediaPipe Hands
+        async function initHandTracking() {
             try {
-                const { FilesetResolver, FaceLandmarker } = await import('https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.3');
+                const { FilesetResolver, HandLandmarker } = await import('https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.3');
                 const vision = await FilesetResolver.forVisionTasks(
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
                 );
-                const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+                const handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
-                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
                         delegate: "GPU"
                     },
                     runningMode: "VIDEO",
-                    numFaces: 1
+                    numHands: 1
                 });
                 
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
-                videoEl.srcObject = stream;
-                await videoEl.play();
-                document.getElementById('status').innerHTML = "🎥 FACE + MOTION ACTIVE";
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } 
+                });
+                videoElement.srcObject = stream;
+                await videoElement.play();
+                document.getElementById('statusText').innerHTML = "✋ HAND ACTIVE | MOVE TO CHANGE SHAPE";
+                document.getElementById('statusText').style.color = "#ff66ff";
                 
-                let lastTime = 0;
-                async function detectFace() {
-                    if (videoEl.readyState >= 2) {
-                        const detections = faceLandmarker.detectForVideo(videoEl, performance.now());
-                        if (detections.faceLandmarks && detections.faceLandmarks.length > 0) {
-                            faceDetected = true;
-                            const landmarks = detections.faceLandmarks[0];
-                            // get nose tip or center of face (landmark 1)
-                            const nose = landmarks[1];
-                            facePosition.x = nose.x;
-                            facePosition.y = nose.y;
+                let lastFrameTime = 0;
+                async function detectHands() {
+                    if (videoElement.readyState >= 2) {
+                        const now = performance.now();
+                        const detections = handLandmarker.detectForVideo(videoElement, now);
+                        if (detections.landmarks && detections.landmarks.length > 0) {
+                            handLandmarks = detections.landmarks[0];
+                            handDetected = true;
+                            const palm = handLandmarks[0];
+                            handPalmPos = { x: palm.x, y: palm.y };
+                            handGesture = getHandGesture(handLandmarks);
                             
-                            // calculate motion delta
-                            const dx = facePosition.x - prevFaceX;
-                            const dy = facePosition.y - prevFaceY;
-                            motionMagnitude = Math.sqrt(dx*dx + dy*dy) * 5; // scale factor
-                            
-                            // update shape based on motion and position
-                            // motion magnitude + horizontal position cycles shape
-                            if (motionMagnitude > 0.08) {
-                                // quick shape change based on direction
-                                const angle = Math.atan2(dy, dx);
-                                if (angle > -Math.PI/4 && angle < Math.PI/4) shapeCycle = (shapeCycle + 0.03) % 4;
-                                else if (Math.abs(dy) > 0.05) shapeCycle = (shapeCycle + 0.02) % 4;
-                                else shapeCycle = (shapeCycle + 0.01) % 4;
+                            // update UI hint
+                            const hintEl = document.getElementById('gestureHint');
+                            if (handGesture === "open") {
+                                hintEl.innerHTML = "🖐️ OPEN PALM → SMOOTH MORPH";
+                                hintEl.style.color = "#aaffdd";
                             } else {
-                                shapeCycle = (shapeCycle + 0.002) % 4;
+                                hintEl.innerHTML = "✊ FIST → EXPLOSIVE SHIFT";
+                                hintEl.style.color = "#ffaa88";
                             }
                             
-                            // map shapeCycle to shape (0:circle,1:square,2:triangle,3:wave)
-                            let newShape = 'circle';
-                            if (shapeCycle < 0.25) newShape = 'circle';
-                            else if (shapeCycle < 0.5) newShape = 'square';
-                            else if (shapeCycle < 0.75) newShape = 'triangle';
-                            else newShape = 'wave';
+                            // calculate hand movement velocity
+                            const dx = handPalmPos.x - lastHandX;
+                            const dy = handPalmPos.y - lastHandY;
+                            const movement = Math.sqrt(dx*dx + dy*dy) * 8;
+                            handVelocity = movement;
                             
-                            if (newShape !== currentShape) {
-                                currentShape = newShape;
-                                targetShapeBuffer = generateShape(currentShape);
-                                // update UI
-                                const shapeNames = { circle: '⚪ CIRCLE', square: '⬛ SQUARE', triangle: '🔺 TRIANGLE', wave: '🌊 WAVE' };
-                                document.getElementById('shapeLabel').innerHTML = `✨ ${shapeNames[currentShape]}`;
-                                // haptic-like flash in text
-                                document.getElementById('instructionText').style.opacity = '0.7';
-                                setTimeout(() => document.getElementById('instructionText').style.opacity = '1', 150);
+                            // SHAPE CHANGE based on hand position and movement
+                            if (movement > 0.06 || Math.abs(dx) > 0.03) {
+                                // map hand X position to shape index (0 to total shapes-1)
+                                const shapeIndex = Math.floor(handPalmPos.x * SHAPES.length);
+                                let newIdx = Math.min(SHAPES.length - 1, Math.max(0, shapeIndex));
+                                // also add some influence from Y axis
+                                const yInfluence = Math.floor(handPalmPos.y * 3);
+                                newIdx = (newIdx + yInfluence) % SHAPES.length;
+                                
+                                if (newIdx !== currentShapeIndex) {
+                                    currentShapeIndex = newIdx;
+                                    currentShapeName = SHAPES[currentShapeIndex];
+                                    targetPositions = generateShapePositions(currentShapeName);
+                                    
+                                    // update UI
+                                    const shapeIcon = {
+                                        circle:'⚪', square:'⬛', triangle:'🔺', heart:'❤️', star:'⭐', infinity:'∞',
+                                        spiral:'🌀', wave:'🌊', flower:'🌸', hexagon:'🔷', diamond:'💎', butterfly:'🦋'
+                                    };
+                                    const icon = shapeIcon[currentShapeName] || '✨';
+                                    document.getElementById('shapeName').innerHTML = `<span>${icon}</span> ${currentShapeName.toUpperCase()}`;
+                                    
+                                    // haptic effect on text
+                                    const shapeDiv = document.getElementById('shapeName');
+                                    shapeDiv.style.transform = 'scale(1.05)';
+                                    setTimeout(() => shapeDiv.style.transform = 'scale(1)', 150);
+                                }
                             }
                             
-                            prevFaceX = facePosition.x;
-                            prevFaceY = facePosition.y;
+                            lastHandX = handPalmPos.x;
+                            lastHandY = handPalmPos.y;
                         } else {
-                            faceDetected = false;
+                            handDetected = false;
                         }
                     }
-                    requestAnimationFrame(detectFace);
+                    requestAnimationFrame(detectHands);
                 }
-                detectFace();
+                detectHands();
             } catch (err) {
                 console.error(err);
-                document.getElementById('status').innerHTML = "⚠️ CAMERA ERROR";
-                // fallback: random shape cycle anyway
+                document.getElementById('statusText').innerHTML = "⚠️ CAMERA ERROR";
+                // fallback: auto cycle shapes
                 setInterval(() => {
-                    const shapes = ['circle', 'square', 'triangle', 'wave'];
-                    const rand = shapes[Math.floor(Math.random() * 4)];
-                    if (rand !== currentShape) {
-                        currentShape = rand;
-                        targetShapeBuffer = generateShape(currentShape);
-                        document.getElementById('shapeLabel').innerHTML = `🌀 ${rand.toUpperCase()}`;
-                    }
-                }, 3000);
+                    currentShapeIndex = (currentShapeIndex + 1) % SHAPES.length;
+                    currentShapeName = SHAPES[currentShapeIndex];
+                    targetPositions = generateShapePositions(currentShapeName);
+                    document.getElementById('shapeName').innerHTML = `<span>✨</span> ${currentShapeName.toUpperCase()}`;
+                }, 4000);
             }
         }
         
-        initFaceTracking();
+        initHandTracking();
         
-        // --- Particle morphing update: smoothly interpolate to target shape ---
-        function updateParticleMorph() {
-            const posAttr = particleGeo.attributes.position.array;
-            let changed = false;
+        // --- Particle Morphing Engine (smooth transitions) ---
+        function morphParticles() {
+            const posAttr = particleGeometry.attributes.position.array;
+            let morphSpeed = 0.038;
+            if (handGesture === "fist") morphSpeed = 0.085; // faster morph on fist
+            
             for (let i = 0; i < PARTICLE_COUNT; i++) {
                 const ix = i*3, iy = i*3+1, iz = i*3+2;
-                const tx = targetShapeBuffer[ix];
-                const ty = targetShapeBuffer[iy];
-                const tz = targetShapeBuffer[iz];
+                const tx = targetPositions[ix];
+                const ty = targetPositions[iy];
+                const tz = targetPositions[iz];
                 
                 let cx = posAttr[ix];
                 let cy = posAttr[iy];
                 let cz = posAttr[iz];
                 
-                // move towards target
-                let speed = 0.045;
-                if (motionMagnitude > 0.1) speed = 0.09; // faster morph on motion
-                
-                cx += (tx - cx) * speed;
-                cy += (ty - cy) * speed;
-                cz += (tz - cz) * speed;
+                cx += (tx - cx) * morphSpeed;
+                cy += (ty - cy) * morphSpeed;
+                cz += (tz - cz) * morphSpeed;
                 
                 posAttr[ix] = cx;
                 posAttr[iy] = cy;
                 posAttr[iz] = cz;
             }
-            particleGeo.attributes.position.needsUpdate = true;
+            particleGeometry.attributes.position.needsUpdate = true;
         }
         
-        // additional swirling effect based on face horizontal movement
-        let swirlAngle = 0;
-        function addMotionSwirl() {
-            if (!faceDetected) return;
-            const posAttr = particleGeo.attributes.position.array;
-            const strength = Math.min(0.12, motionMagnitude * 0.8);
-            if (strength < 0.01) return;
-            const centerX = (facePosition.x - 0.5) * 3;
+        // Additional effect: hand attraction/repulsion
+        function applyHandForce() {
+            if (!handDetected || !handLandmarks) return;
+            const posAttr = particleGeometry.attributes.position.array;
+            // map hand pos to world space (x: -5 to 5, y: -4 to 4)
+            const handWorldX = (handPalmPos.x - 0.5) * 11;
+            const handWorldY = (0.5 - handPalmPos.y) * 8;
+            const forceStrength = handGesture === "open" ? 0.12 : -0.19;
+            
             for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const ix = i*3, iz = i*3+2;
-                let px = posAttr[ix];
-                let pz = posAttr[iz];
-                const angle = Math.atan2(pz, px);
-                const rad = Math.hypot(px, pz);
-                const newAngle = angle + strength * 0.2;
-                posAttr[ix] = Math.cos(newAngle) * rad;
-                posAttr[iz] = Math.sin(newAngle) * rad;
+                const ix = i*3, iy = i*3+1;
+                const dx = handWorldX - posAttr[ix];
+                const dy = handWorldY - posAttr[iy];
+                const dist = Math.hypot(dx, dy);
+                if (dist < 2.5) {
+                    const influence = forceStrength * (1 - dist/2.5) * 0.04;
+                    posAttr[ix] += dx * influence;
+                    posAttr[iy] += dy * influence;
+                }
             }
-            particleGeo.attributes.position.needsUpdate = true;
+            particleGeometry.attributes.position.needsUpdate = true;
         }
         
-        // --- FPS and animation ---
+        // --- FPS counter & animation ---
         let frameCount = 0;
-        let lastFPSTime = performance.now();
+        let lastFpsUpdate = performance.now();
         function updateFPS() {
             frameCount++;
             const now = performance.now();
-            if (now - lastFPSTime >= 1000) {
-                const fps = Math.round((frameCount * 1000) / (now - lastFPSTime));
-                document.getElementById('status').innerHTML = `🎥 FACE OK | ${fps} FPS`;
+            if (now - lastFpsUpdate >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (now - lastFpsUpdate));
+                document.getElementById('statusText').innerHTML = `🤚 TRACKING | ${fps} FPS`;
                 frameCount = 0;
-                lastFPSTime = now;
+                lastFpsUpdate = now;
             }
         }
         
-        // camera subtle sway
-        let time = 0;
-        function animateCamera() {
-            time += 0.008;
-            const targetX = (facePosition.x - 0.5) * 0.8;
-            const targetY = (facePosition.y - 0.5) * -0.6;
-            camera.position.x += (targetX - camera.position.x) * 0.05;
-            camera.position.y += (targetY - camera.position.y) * 0.05;
-            camera.lookAt(0, 0, 0);
-            stars.rotation.y = time * 0.05;
+        // rotate starfield & dynamic camera
+        let timeAnim = 0;
+        function animateScene() {
+            timeAnim += 0.006;
+            starsBg.rotation.y = timeAnim * 0.05;
+            starsBg.rotation.x = Math.sin(timeAnim * 0.2) * 0.1;
+            
+            // aura pulse
+            const pulse = 0.08 + Math.sin(timeAnim * 8) * 0.04;
+            auraMat.opacity = pulse;
+            if (handDetected) {
+                const targetScale = handGesture === "open" ? 1.4 : 0.9;
+                auraGlow.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+            } else {
+                auraGlow.scale.lerp(new THREE.Vector3(1, 1, 1), 0.05);
+            }
+            
+            // camera slight motion with hand
+            if (handDetected) {
+                const targetCamX = (handPalmPos.x - 0.5) * 1.2;
+                const targetCamY = (handPalmPos.y - 0.5) * -0.8;
+                camera.position.x += (targetCamX - camera.position.x) * 0.04;
+                camera.position.y += (targetCamY - camera.position.y) * 0.04;
+                camera.lookAt(0, 0, 0);
+            } else {
+                camera.position.x *= 0.98;
+                camera.position.y *= 0.98;
+                camera.lookAt(0, 0, 0);
+            }
         }
         
+        // Main loop
         function animate() {
             requestAnimationFrame(animate);
-            updateParticleMorph();
-            addMotionSwirl();
-            animateCamera();
+            morphParticles();
+            applyHandForce();
+            animateScene();
             updateFPS();
-            
             effectComposer.render();
         }
         
         animate();
         
-        // handle resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -500,29 +653,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        // generate initial shapes for all
-        setTimeout(() => {
-            targetShapeBuffer = generateShape('circle');
-            console.log('ready: Motion shape visualizer active');
-        }, 100);
-        
-        // add a small hint for interactive particles
-        const overlayMsg = document.createElement('div');
-        overlayMsg.style.position = 'fixed';
-        overlayMsg.style.bottom = '70px';
-        overlayMsg.style.left = '50%';
-        overlayMsg.style.transform = 'translateX(-50%)';
-        overlayMsg.style.background = '#ff336622';
-        overlayMsg.style.backdropFilter = 'blur(8px)';
-        overlayMsg.style.padding = '6px 14px';
-        overlayMsg.style.borderRadius = '40px';
-        overlayMsg.style.fontSize = '10px';
-        overlayMsg.style.color = '#ff99cc';
-        overlayMsg.style.zIndex = '99';
-        overlayMsg.style.fontFamily = 'monospace';
-        overlayMsg.innerText = '👆 move your HEAD or HAND → particles change shape dynamically';
-        document.body.appendChild(overlayMsg);
-        setTimeout(() => overlayMsg.remove(), 5000);
+        console.log("🔥 Hand Shape Visualizer Loaded | 12+ Shapes");
     </script>
 </body>
 </html>
